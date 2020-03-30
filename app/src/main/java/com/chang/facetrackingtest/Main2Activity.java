@@ -37,7 +37,7 @@ public class Main2Activity extends AppCompatActivity {
         mHandlerThread = new HandlerThread("drawingThread");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
-        mDrawingHelper = new DrawingHelper(mHandler,this);
+        mDrawingHelper = new DrawingHelper(this);
         mCameraHelper = new CameraHelper(this);
         mSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
@@ -58,8 +58,6 @@ public class Main2Activity extends AppCompatActivity {
                         mCameraHelper.openCamera();
                         //得到预览尺寸
                         mCameraHelper.setupCamera(i1,i2);
-                        mDrawingHelper.setPreviewHeight(mCameraHelper.PREVIEW_HEIGHT);
-                        mDrawingHelper.setPreviewWidth(mCameraHelper.PREVIEW_WIDTH);
                         mCameraHelper.setSurfaceTexture(null);
                         mCameraHelper.setPreviewCallBack(new Camera.PreviewCallback() {
                             @Override
@@ -69,27 +67,25 @@ public class Main2Activity extends AppCompatActivity {
 
                             }
                         });
+                        //需等待设置surfacetexture才会正式启动
                         mCameraHelper.startPreview();
-                    }
-                });
 
-                //有了预览尺寸后才可调用init方法
-                mDrawingHelper.init(surfaceHolder.getSurface(),i1,i2);
-                //mDrawingHelper.init后才可调mDrawingHelper.getSurfaceTexture()
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-
+                        //mCameraHelper.setupCamera(i1,i2)后才可得到mCameraHelper.PREVIEW_HEIGHT
+                        mDrawingHelper.setPreviewHeight(mCameraHelper.PREVIEW_HEIGHT);
+                        mDrawingHelper.setPreviewWidth(mCameraHelper.PREVIEW_WIDTH);
+                        //有了预览尺寸后才可调用init方法
+                        mDrawingHelper.init(surfaceHolder.getSurface(),i1,i2);
+                        //mDrawingHelper.init后才可调mDrawingHelper.getSurfaceTexture() 正式启动预览
                         mCameraHelper.setSurfaceTexture(mDrawingHelper.getSurfaceTexture());
                     }
                 });
+
             }
 
             @Override
             public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
 
-                mDrawingHelper.release();
-                releaseCamera();
+                release();
             }
         });
 
@@ -126,11 +122,12 @@ public class Main2Activity extends AppCompatActivity {
 
         });
     }
-    private void releaseCamera(){
+    private void release(){
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 mCameraHelper.release();
+                mDrawingHelper.release();
             }
         });
     }
