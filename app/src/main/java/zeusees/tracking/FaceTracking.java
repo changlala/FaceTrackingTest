@@ -31,7 +31,7 @@ public class FaceTracking {
         faces = new ArrayList<Face>();
 
     }
-    protected void finalize() throws java.lang.Throwable {
+    public void finalize() throws java.lang.Throwable {
         super.finalize();
         releaseSession(session);
     }

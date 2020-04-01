@@ -40,6 +40,8 @@ public class DrawingHelper {
     private int mViewWidth;
     private int mViewHeight;
 
+    private boolean first = true;
+
     private Object lockObj = new Object();
     private static final String TAG = "DrawingHelper";
     public DrawingHelper(Context c) {
@@ -83,10 +85,17 @@ public class DrawingHelper {
 
         long start1 = System.currentTimeMillis();
         ////mNv21Data图片是前置传来的生图，w>h ，但是这里传进去的mPreviewHeight>mPreviewWidth ???
-        mMultiTrack106.Update(mNv21Data, mPreviewWidth, mPreviewHeight);
-        Log.d(TAG, "人脸识别用时 "+ (System.currentTimeMillis()-start1));
+        if(first){
+            mMultiTrack106.FaceTrackingInit(mNv21Data,mPreviewWidth,mPreviewHeight);
+            first = false;
+        }else {
+            mMultiTrack106.Update(mNv21Data, mPreviewWidth, mPreviewHeight);
+            Log.d(TAG, "人脸识别用时 "+ (System.currentTimeMillis()-start1));
+        }
+
 
         List<Face> faceActions = mMultiTrack106.getTrackingInfo();
+        Log.d(TAG, "draw: 检测到人脸 "+faceActions.size());
         float[] p = null;
         float[] points = null;
         for (Face r : faceActions) {
@@ -140,6 +149,12 @@ public class DrawingHelper {
         mGLCamera.release();
         mGLPoints.release();
         mEGLUtils.release();
+
+        try {
+            mMultiTrack106.finalize();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
     }
 
     public void setPreviewWidth(int mPreviewWidth) {
@@ -159,7 +174,7 @@ public class DrawingHelper {
     }
 
     private int getBitmapId(){
-        return R.drawable.ic_launcher_background;
+        return R.drawable.ic_launcher_foreground;
     }
 
     //归一化坐标[-1,1]

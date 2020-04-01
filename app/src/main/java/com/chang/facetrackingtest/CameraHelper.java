@@ -48,7 +48,7 @@ public class CameraHelper {
 
         for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
             Camera.getCameraInfo(i,cameraInfo);
-            if(cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK){
+            if(cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT){
                 mCameraInfo = cameraInfo;
                 mCamera = Camera.open(i);
                 break;

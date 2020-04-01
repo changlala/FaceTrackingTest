@@ -15,8 +15,8 @@ import androidx.annotation.Nullable;
 public class FixedAspectRatioLayout extends FrameLayout {
 
 
-    private int mWidth = 9;
-    private int mHeight = 16;
+    private int mWidth = 3;
+    private int mHeight = 4;
 
     public FixedAspectRatioLayout(@NonNull Context context) {
         super(context);
