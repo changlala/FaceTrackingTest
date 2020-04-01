@@ -68,6 +68,7 @@ public class DrawingHelper {
 
     }
 
+
     public void draw(final byte[] data){
         long start = System.currentTimeMillis();
         if (mEGLUtils == null) {
@@ -81,7 +82,7 @@ public class DrawingHelper {
         Log.d(TAG, "复制数组用时 "+ (System.currentTimeMillis()-start));
 
         long start1 = System.currentTimeMillis();
-        //预览尺寸，因为nv21
+        ////mNv21Data图片是前置传来的生图，w>h ，但是这里传进去的mPreviewHeight>mPreviewWidth ???
         mMultiTrack106.Update(mNv21Data, mPreviewWidth, mPreviewHeight);
         Log.d(TAG, "人脸识别用时 "+ (System.currentTimeMillis()-start1));
 

@@ -2,6 +2,11 @@ package com.chang.facetrackingtest;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,9 +18,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 
+import java.io.ByteArrayOutputStream;
+
 
 public class Main2Activity extends AppCompatActivity {
 
+    private static final String TAG = "Main2Activity";
     private CameraHelper mCameraHelper;
     private SurfaceView mSurfaceView;
     private Handler mHandler;
@@ -63,7 +71,10 @@ public class Main2Activity extends AppCompatActivity {
                             @Override
                             public void onPreviewFrame(byte[] bytes, Camera camera) {
                                 Log.d("chang", "draw一帧");
+                                Log.d(TAG, "onPreviewFrame: 回调线程为"+Thread.currentThread().getName());
                                 mDrawingHelper.draw(bytes);
+                                //经测试，回调中输出的图片就是前置采集的图片，即不镜面旋转的情况下需旋转270度方可正常
+                                getBitmap(bytes,camera.getParameters().getPreviewSize().height,camera.getParameters().getPreviewSize().width);
 
                             }
                         });
@@ -99,6 +110,17 @@ public class Main2Activity extends AppCompatActivity {
         });
     }
 
+    private Bitmap getBitmap(byte[] bytes,int w,int h){
+        YuvImage image = new YuvImage(bytes, ImageFormat.NV21, h, w, null);            //ImageFormat.NV21  640 480
+        ByteArrayOutputStream outputSteam = new ByteArrayOutputStream();
+        image.compressToJpeg(new Rect(0, 0, image.getWidth(), image.getHeight()), 70, outputSteam); // 将NV21格式图片，以质量70压缩成Jpeg，并得到JPEG数据流
+        byte[] jpegData = outputSteam.toByteArray();                                                //从outputSteam得到byte数据
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 1;
+        Bitmap bmp = BitmapFactory.decodeByteArray(jpegData, 0,jpegData.length, options);
+        return bmp;
+    }
     private void startCamera(final int viewWidth,final int viewHeight){
         mHandler.post(new Runnable() {
             @Override
@@ -114,6 +136,7 @@ public class Main2Activity extends AppCompatActivity {
                     public void onPreviewFrame(byte[] bytes, Camera camera) {
                         Log.d("chang", "draw一帧");
                         mDrawingHelper.draw(bytes);
+
 
                     }
                 });

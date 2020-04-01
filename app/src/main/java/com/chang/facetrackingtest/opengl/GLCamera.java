@@ -6,6 +6,7 @@ import android.opengl.GLES20;
 import android.util.Log;
 
 public class GLCamera {
+    private static final String TAG = "GLCamera";
     private float[] mSTMatrix = new float[16];
 
     private int[] textures;
@@ -37,10 +38,24 @@ public class GLCamera {
         Log.d("changchang", "textures[0] "+textures[0]);
         mSurfaceTexture = new SurfaceTexture(textures[0]);
     }
+
+    /**
+     * TransformMatrix
+     * 前置时总为：
+     *  0,-1,0,0,
+     *  1,0,0,0,
+     *  0,0,1,0,
+     *  0,1,0,1
+     */
     public void update(){
         if(mSurfaceTexture != null){
             mSurfaceTexture.updateTexImage();
             mSurfaceTexture.getTransformMatrix(mSTMatrix);
+
+            for (int i = 0; i < mSTMatrix.length; i++) {
+                Log.d(TAG, "TransformMatrix: "+i+" "+mSTMatrix[i]);
+            }
+
         }
     }
 

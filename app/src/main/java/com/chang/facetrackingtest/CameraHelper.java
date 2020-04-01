@@ -48,7 +48,7 @@ public class CameraHelper {
 
         for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
             Camera.getCameraInfo(i,cameraInfo);
-            if(cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT){
+            if(cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK){
                 mCameraInfo = cameraInfo;
                 mCamera = Camera.open(i);
                 break;
@@ -92,6 +92,7 @@ public class CameraHelper {
             Log.d("chang", "setupCamera: rotaion "+rotation);
             int degrees = 0;
             switch (rotation) {
+                //锁定竖屏，所以degrees = 0;
                 case Surface.ROTATION_0:
                     degrees = 0;
                     break;
@@ -114,6 +115,7 @@ public class CameraHelper {
                 result = (mCameraInfo.orientation - degrees + 360) % 360;
             }
             mCamera.setDisplayOrientation(result);
+
 
             //设置对焦模式
             List<String> supportedFocusModes = parameters.getSupportedFocusModes();
