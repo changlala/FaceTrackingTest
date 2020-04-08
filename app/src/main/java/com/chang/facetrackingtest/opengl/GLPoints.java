@@ -11,13 +11,18 @@ public class GLPoints {
     private int bufferLength = 106*2*4;
     private int programId = -1;
     private int aPositionHandle;
+    private int iLocation;
+
 
     private int[] vertexBuffers;
 
 
     private String fragmentShader =
+            "uniform highp float i;\n"+
             "void main() {\n" +
-                    "    gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n" +
+                    "if(i== 1.0){" +
+                    "gl_FragColor = vec4(1.0,1.0,0.0,1.0);}" +
+                    "else{gl_FragColor = vec4(1.0,0.0,0.0,1.0);}\n"+
                     "}";
     private  String vertexShader = "attribute vec2 aPosition;\n" +
             "void main() {\n" +
@@ -33,7 +38,7 @@ public class GLPoints {
     public void initPoints(){
         programId = ShaderUtils.createProgram(vertexShader, fragmentShader);
         aPositionHandle = GLES20.glGetAttribLocation(programId, "aPosition");
-
+        iLocation = GLES20.glGetUniformLocation(programId,"i");
         vertexBuffers = new int[1];
         GLES20.glGenBuffers(1,vertexBuffers,0);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffers[0]);
@@ -56,8 +61,21 @@ public class GLPoints {
         GLES20.glEnableVertexAttribArray(aPositionHandle);
         GLES20.glVertexAttribPointer(aPositionHandle, 2, GLES20.GL_FLOAT, false,
                 0, 0);
+
+
+        //黄色点 0~49
+        GLES20.glUniform1f(iLocation,1.0f);
+        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 50);
+
+        //红色点 50
+        GLES20.glUniform1f(iLocation,0.0f);
+        GLES20.glDrawArrays(GLES20.GL_POINTS, 50, 1);
+
+        //黄色点 51~105
+        GLES20.glUniform1f(iLocation,1.0f);
+        GLES20.glDrawArrays(GLES20.GL_POINTS, 51, 55);
+
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
-        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 106);
     }
 
     public void release(){

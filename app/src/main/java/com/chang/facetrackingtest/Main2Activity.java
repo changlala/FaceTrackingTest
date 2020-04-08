@@ -16,6 +16,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
@@ -29,11 +30,13 @@ public class Main2Activity extends AppCompatActivity {
     private Handler mHandler;
     private HandlerThread mHandlerThread;
     private DrawingHelper mDrawingHelper;
+    //预览界面宽高比
+    private int previewW = 3;
+    private int previewH = 4;
     //贴图开关
     private TextView bitmapSwitch;
-//
-//    private int mPreviewWidth;
-//    private int mPreviewHeight;
+    //跳转到设置页
+    private ImageView settingIV;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,7 +68,7 @@ public class Main2Activity extends AppCompatActivity {
                         //以下顺序不可随意更改
                         mCameraHelper.openCamera();
                         //得到预览尺寸
-                        mCameraHelper.setupCamera(i1,i2);
+                        mCameraHelper.setupCamera(previewW,previewH);
                         mCameraHelper.setSurfaceTexture(null);
                         mCameraHelper.setPreviewCallBack(new Camera.PreviewCallback() {
                             @Override
@@ -106,6 +109,14 @@ public class Main2Activity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mDrawingHelper.invertShowBitmap();
+            }
+        });
+
+        settingIV = findViewById(R.id.settingBtn);
+        settingIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                /* todo */
             }
         });
     }

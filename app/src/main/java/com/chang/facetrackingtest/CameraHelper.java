@@ -16,12 +16,12 @@ public class CameraHelper {
     private Camera mCamera;
     private Camera.CameraInfo mCameraInfo;
     private SurfaceTexture mSurfaceTexture;
-    //height>width
+    //height>width 相机的支持尺寸
     public volatile int PREVIEW_WIDTH;
     public volatile int PREVIEW_HEIGHT;
     private Context mContext;
     private Camera.PreviewCallback mPreviewCallBack;
-    //控件尺寸 height>width
+    //控件尺寸 height>width 是简略的宽高比
     private int mScreenWidth;
     private int mScreenHeight;
 
@@ -114,7 +114,7 @@ public class CameraHelper {
             } else {  // back-facing
                 result = (mCameraInfo.orientation - degrees + 360) % 360;
             }
-            mCamera.setDisplayOrientation(result);
+//            mCamera.setDisplayOrientation(result);
 
 
             //设置对焦模式

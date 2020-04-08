@@ -33,9 +33,12 @@ public class DrawingHelper {
     private Context mContext;
 
     private volatile boolean showBitmap = true;
-    //width < height，预览尺寸即相机的preview size
+    //width < height，相机能够支持的预览尺寸（相机raw尺寸）
     private int mPreviewWidth;
     private int mPreviewHeight;
+    //width < height，实际绘制画面的preview size
+    private int mRealPreviewWidth;
+    private int mRealPreviewHeight;
     //width<height 控件尺寸，surfaceview的尺寸
     private int mViewWidth;
     private int mViewHeight;
@@ -57,20 +60,39 @@ public class DrawingHelper {
     }
 
     public void init(final Surface surface,final int viewWidth,final int viewHeight){
-        Log.d(TAG, "drawinghelper init 宽高"+mPreviewWidth+mPreviewHeight);
+        Log.d(TAG, "drawinghelper init 实际宽高"+mRealPreviewWidth+mRealPreviewHeight);
+        getRealSize(viewWidth,viewHeight);
         mEGLUtils.initEGL(surface);
         mGLCamera.initGLCamera();
         mGLFrame.initFrame();
-        //绘制的GLES20.glViewport()以及贴图tex的大小，即会直接免得大小应与view控件尺寸保持一致
         mGLFrame.setSize(viewWidth,viewHeight, mPreviewWidth,mPreviewHeight );
         mGLPoints.initPoints();
-        mGLBitmap.initFrame(viewWidth,viewHeight);
-        //nv21数组长度与相机预览尺寸相关
+        mGLBitmap.initFrame(mRealPreviewWidth,mRealPreviewHeight);
+        //nv21数组长度与相机raw尺寸相关
         mNv21Data = new byte[mPreviewWidth * mPreviewHeight * 2];
 
     }
 
-
+    /**
+     * 获得最终预览画面的实际尺寸
+     * mRealPreviewWidth
+     * mRealPreviewHeight
+     *
+     * 参数为屏幕宽高比
+     */
+    public void getRealSize(int screenWidth,int screenHeight){
+        float sh = screenWidth*1.0f/screenHeight;//9:16
+        float vh = mPreviewWidth *1.0f/ mPreviewHeight;//3:4
+        if(sh < vh){
+            //预览3:4时走此分支
+            Log.d("chang", "rect: sh<vh");
+            mRealPreviewWidth = screenWidth;
+            mRealPreviewHeight = (int)(mPreviewHeight *1.0f/ mPreviewWidth *mRealPreviewWidth);
+        }else{
+            mRealPreviewHeight = screenHeight;
+            mRealPreviewWidth = (int)(mPreviewWidth *1.0f/ mPreviewHeight *mRealPreviewHeight);
+        }
+    }
     public void draw(final byte[] data){
         long start = System.currentTimeMillis();
         if (mEGLUtils == null) {
@@ -109,14 +131,17 @@ public class DrawingHelper {
                 //贴图的坐标点 倒z字顺序
                 if (i == 50) {
                     p = new float[8];
-                    p[0] = view2openglX(x + 5, mPreviewWidth);
-                    p[1] = view2openglY(y - 5, mPreviewHeight);
-                    p[2] = view2openglX(x - 5, mPreviewWidth);
-                    p[3] = view2openglY(y - 5, mPreviewHeight);
-                    p[4] = view2openglX(x + 5, mPreviewWidth);
-                    p[5] = view2openglY(y + 5, mPreviewHeight);
-                    p[6] = view2openglX(x - 5, mPreviewWidth);
-                    p[7] = view2openglY(y + 5, mPreviewHeight);
+                    p[0] = view2openglX(x + 10, mPreviewWidth);
+                    p[1] = view2openglY(y - 10, mPreviewHeight);
+                    p[2] = view2openglX(x - 10, mPreviewWidth);
+                    p[3] = view2openglY(y - 10, mPreviewHeight);
+                    p[4] = view2openglX(x + 10, mPreviewWidth);
+                    p[5] = view2openglY(y + 10, mPreviewHeight);
+                    p[6] = view2openglX(x - 10, mPreviewWidth);
+                    p[7] = view2openglY(y + 10, mPreviewHeight);
+                    for (int j = 0; j < p.length; j++) {
+                        Log.d(TAG, "draw: 贴图数组 "+j+" 为"+p[j]);
+                    }
 
                 }
             }

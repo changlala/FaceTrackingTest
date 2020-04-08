@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.os.Build;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -31,10 +32,15 @@ public class GLBitmap {
     };
     private FloatBuffer textureVertexBuffer;
     private final float[] textureVertexData = {
-            1f, 0f,//右下
-            0f, 0f,//左下
             1f, 1f,//右上
-            0f, 1f//左上
+            0f, 1f,//左上
+            1f, 0f,//右下
+            0f, 0f//左下
+
+//            1f, 0f,
+//            0f, 0f,
+//            1f, 1f,
+//            0f, 1f
     };
     private Bitmap bitmap;
     private Context mContext;
@@ -74,12 +80,12 @@ public class GLBitmap {
             "varying vec2 vTexCoord;\n" +
             "void main() {\n" +
             "    vTexCoord=aTexCoord;\n" +
-            "    gl_Position = aPosition;\n" +
+            "    gl_Position = vec4(aPosition.x,-aPosition.y,0.0,1.0);\n" +
             "}";
     private String fragmentShader = "varying highp vec2 vTexCoord;\n" +
             "uniform highp sampler2D sTexture;\n"+
             "void main() {\n" +
-            "    gl_FragColor = texture2D(sTexture,vec2(vTexCoord.x,1.0 - vTexCoord.y));\n" +
+            "    gl_FragColor = texture2D(sTexture,vec2(vTexCoord.x,vTexCoord.y));\n" +
             "}";
     public void initFrame(int width,int height){
         this.width = width;
@@ -117,6 +123,7 @@ public class GLBitmap {
         //解绑
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER,0);
     }
+
     public void setPoints(float[] points){
         vertexBuffer.rewind();
         vertexBuffer.put(points);
@@ -131,10 +138,10 @@ public class GLBitmap {
         GLES20.glUseProgram(programId);
         GLES20.glEnableVertexAttribArray(aPositionHandle);
         GLES20.glVertexAttribPointer(aPositionHandle, 2, GLES20.GL_FLOAT, false,
-                8, vertexBuffer);
+                0, vertexBuffer);
 
         GLES20.glEnableVertexAttribArray(aTextureCoordHandle);
-        GLES20.glVertexAttribPointer(aTextureCoordHandle,2,GLES20.GL_FLOAT,false,8,textureVertexBuffer);
+        GLES20.glVertexAttribPointer(aTextureCoordHandle,2,GLES20.GL_FLOAT,false,0,textureVertexBuffer);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,textures[0]);

@@ -20,25 +20,55 @@ public class GLFrame {
             -1f, 1f, 0f
     };
     private final float[] textureVertexData = {
-            1f, 0f,
-            0f, 0f,
-            1f, 1f,
-            0f, 1f
+            //a
+//            1f, 0f,
+//            0f, 0f,
+//            1f, 1f,
+//            0f, 1f
 
+              //b
 //            1f, 1f,
 //            0f, 1f,
 //            1f, 0f,
 //            0f, 0f
+
+            // c 前置 顺90
+            0f, 0f,
+            0f, 1f,
+            1f, 0f,
+            1f, 1f
+
+//            0f, 1f,
+//            0f, 0f,
+//            1f, 1f,
+//            1f, 0f
+    };
+
+    private final float[] bitmapTextureVertexData = {
+            //bitmap贴图用coord
+            1f, 1f,
+            0f, 1f,
+            1f, 0f,
+            0f, 0f
+
+//            1f, 0f,
+//            0f, 0f,
+//            1f, 1f,
+//            0f, 1f
     };
     private FloatBuffer vertexBuffer;
 
     private FloatBuffer textureVertexBuffer;
+    private FloatBuffer bitmapTextureVertexBuffer;
 
     private int programId = -1;
     private int aPositionHandle;
+
     private int uTextureSamplerHandle;
     private int iTextureSamplerHandle;
     private int aTextureCoordHandle;
+    private int bitmapTexCoordHandle;
+
     private int uSTMMatrixHandle;
 
     private int sHandle;
@@ -47,13 +77,11 @@ public class GLFrame {
 
     private int iHandle;
 
-
     private int[] vertexBuffers;
-
-
 
     private String fragmentShader = "#extension GL_OES_EGL_image_external : require\n" +
             "varying highp vec2 vTexCoord;\n" +
+            "varying highp vec2 bTexCoord;\n" +
             "uniform samplerExternalOES sTexture;\n" +
             "uniform sampler2D iTexture;\n" +
             "uniform highp mat4 uSTMatrix;\n" +
@@ -75,14 +103,20 @@ public class GLFrame {
             "    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n" +
             "}"+
             "void main() {\n" +
-            "    highp vec2 tx_transformed = (uSTMatrix * vec4(vTexCoord, 0, 1.0)).xy;\n" +
+
+            //以下配合a正常
+//            "    highp vec2 tx_transformed = (uSTMatrix * vec4(vTexCoord, 0, 1.0)).xy;\n" +
+
+            //以下配合c 显示效果正确
+            "    highp vec2 tx_transformed = vTexCoord;\n" +
+
             "    highp vec4 video = texture2D(sTexture, tx_transformed);\n" +
             "    highp vec4 rgba;\n"+
             "    if(i == 0.0){\n" +
             "       rgba = video;\n" +
             "    }\n"+
             "    else{\n" +
-            "       highp vec4 image = texture2D(iTexture, vTexCoord);\n" +
+            "       highp vec4 image = texture2D(iTexture, bTexCoord);\n" +
             "       rgba = mix(video,image,image.a);\n"+
             "    }\n"+
 //            "    highp vec3 hsl = rgb2hsv(rgba.xyz);\n"+
@@ -98,9 +132,12 @@ public class GLFrame {
             "}";
     private  String vertexShader = "attribute vec4 aPosition;\n" +
             "attribute vec2 aTexCoord;\n" +
+            "attribute vec2 bitmapTexCoord;\n" +
             "varying vec2 vTexCoord;\n" +
+            "varying vec2 bTexCoord;\n" +
             "void main() {\n" +
             "    vTexCoord = aTexCoord;\n" +
+            "    bTexCoord = bitmapTexCoord;\n" +
             "    gl_Position = aPosition;\n" +
             "}";
     public GLFrame(){
@@ -115,6 +152,12 @@ public class GLFrame {
                 .asFloatBuffer()
                 .put(textureVertexData);
         textureVertexBuffer.position(0);
+
+        bitmapTextureVertexBuffer = ByteBuffer.allocateDirect(bitmapTextureVertexData.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .put(bitmapTextureVertexData);
+        bitmapTextureVertexBuffer.position(0);
     }
     public void initFrame(){
         programId = ShaderUtils.createProgram(vertexShader, fragmentShader);
@@ -123,6 +166,7 @@ public class GLFrame {
         uTextureSamplerHandle = GLES20.glGetUniformLocation(programId, "sTexture");
         iTextureSamplerHandle = GLES20.glGetUniformLocation(programId, "iTexture");
         aTextureCoordHandle = GLES20.glGetAttribLocation(programId, "aTexCoord");
+        bitmapTexCoordHandle = GLES20.glGetAttribLocation(programId, "bitmapTexCoord");
         sHandle =GLES20.glGetUniformLocation(programId,"S");
         hHandle =GLES20.glGetUniformLocation(programId,"H");
         lHandle =GLES20.glGetUniformLocation(programId,"L");
@@ -131,13 +175,17 @@ public class GLFrame {
         iHandle =GLES20.glGetUniformLocation(programId,"i");
 
         //生成两个顶点buffer，保存到vertexBuffers[0] vertexBuffers[1]
-        vertexBuffers = new int[2];
-        GLES20.glGenBuffers(2,vertexBuffers,0);
+        vertexBuffers = new int[3];
+        GLES20.glGenBuffers(3,vertexBuffers,0);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffers[0]);
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vertexData.length*4, vertexBuffer,GLES20.GL_STATIC_DRAW);
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffers[1]);
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, textureVertexData.length*4, textureVertexBuffer,GLES20.GL_STATIC_DRAW);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffers[2]);
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, bitmapTextureVertexData.length*4, bitmapTextureVertexBuffer,GLES20.GL_STATIC_DRAW);
+
         //结束对顶点buffer的处理
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
     }
@@ -166,12 +214,15 @@ public class GLFrame {
     }
 
 
+    /**
+     * 规定绘制范围，根据分辨率的大小随之改变 自动居中
+     */
     private void rect(){
         int left,top,viewWidth,viewHeight;
-        float sh = screenWidth*1.0f/screenHeight;
-        float vh = width *1.0f/ height;
+        float sh = screenWidth*1.0f/screenHeight;//9:16
+        float vh = width *1.0f/ height;//3:4
         if(sh < vh){
-            //该分支一般不会被调用
+            //预览3:4时走此分支
             Log.d("chang", "rect: sh<vh");
             left = 0;
             viewWidth = screenWidth;
@@ -203,6 +254,10 @@ public class GLFrame {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffers[1]);
         GLES20.glEnableVertexAttribArray(aTextureCoordHandle);
         GLES20.glVertexAttribPointer(aTextureCoordHandle, 2, GLES20.GL_FLOAT, false, 0, 0);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffers[2]);
+        GLES20.glEnableVertexAttribArray(bitmapTexCoordHandle);
+        GLES20.glVertexAttribPointer(bitmapTexCoordHandle, 2, GLES20.GL_FLOAT, false, 0, 0);
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
         //关联相机预览tex 激活纹理单元0，并将其绑定到纹理单元0
